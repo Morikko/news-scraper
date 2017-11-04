@@ -26,7 +26,7 @@ def getArticleLinksFromHomePage(links_limit=-1):
                                 "lxml")
     links = []
     for a in lemonde('a'):
-        if ( len(links) == links_limit ):
+        if (len(links) == links_limit):
             break
         if len(a('', {'class': 'marqueur_restreint'})) == 0 \
                 and "/article/" in a['href']:
@@ -43,7 +43,8 @@ def getHtmlArticleFromArticleLinks(links):
     """
     html_articles = []
     for link in links:
-        html_articles.append(bs4.BeautifulSoup( urllib.request.urlopen(link).read(), "lxml" ).prettify())
+        html_articles.append(bs4.BeautifulSoup(
+            urllib.request.urlopen(link).read(), "lxml").prettify())
     return html_articles
 
 
@@ -60,57 +61,96 @@ def extractFeaturesFromHtmlArticles(html_articles):
      - Article content
      - Related article titles
 
+     If a feature is not found, an empty string is set instead.
+
     Keyword arguments:
     html_articles -- A list of html articles in string type
     """
     features_articles = []
-    for html in html_articles:
+    missing = ""
+    for index, html in enumerate(html_articles):
         features = {}
-        article_lemonde = bs4.BeautifulSoup( html, "lxml" )
+        article_lemonde = bs4.BeautifulSoup(html, "lxml")
         # Title
-        if len( article_lemonde('h1', {'class': 'tt2'}) ) > 0:
-            features['title'] = article_lemonde('h1', {'class': 'tt2'})[0].text.strip()
+        if len(article_lemonde('h1', {'class': 'tt2'})) > 0:
+            features['title'] = article_lemonde(
+                'h1', {'class': 'tt2'})[0].text.strip()
+        else:
+            features['title'] = ""
+            missing = missing + "- title missing\n"
 
         # Simple scrap
-        if len( article_lemonde('', {'class':'description-article'}) ) > 0:
-            features['article_description'] = article_lemonde('', {'class':'description-article'})[0].text
+        if len(article_lemonde('', {'class': 'description-article'})) > 0:
+            features['article_description'] = article_lemonde(
+                '', {'class': 'description-article'})[0].text
+        else:
+            features['article_description'] = ""
+            missing = missing + "- article_description missing\n"
 
-        if len( article_lemonde('div', {'id': 'articleBody'}) ) > 0:
-            features['article_content'] = article_lemonde('div', {'id': 'articleBody'})[0].text.strip()
+        if len(article_lemonde('div', {'id': 'articleBody'})) > 0:
+            features['article_content'] = article_lemonde(
+                'div', {'id': 'articleBody'})[0].text.strip()
+        else:
+            features['article_content'] = ""
+            missing = missing + "- article_content missing\n"
 
         related_articles = []
-        if len( article_lemonde('aside', {'class':'bloc_base meme_sujet'}) ) > 0:
-            for art in article_lemonde('aside', {'class':'bloc_base meme_sujet'})[0]('a'):
+        if len(article_lemonde('aside', {'class': 'bloc_base meme_sujet'})) > 0:
+            for art in article_lemonde('aside', {'class': 'bloc_base meme_sujet'})[0]('a'):
                 related_articles.append(art.text.strip())
             features['related_articles'] = related_articles
+        else:
+            features['related_articles'] = []
+            missing = missing + "- related_articles missing\n"
 
         # Category
-        if len ( article_lemonde('meta', {'property': 'og:url'}) ) > 0:
+        if len(article_lemonde('meta', {'property': 'og:url'})) > 0:
             offset = len("http://www.lemonde.fr")
-            lemonde_article_url = article_lemonde('meta', {'property': 'og:url'})[0]['content']
+            lemonde_article_url = article_lemonde(
+                'meta', {'property': 'og:url'})[0]['content']
             features['url'] = lemonde_article_url
-            slash1 = lemonde_article_url.find('/', offset)+1
-            slash2 = lemonde_article_url.find('/', slash1)+1
-            if ( slash1 >= 0 and slash2 >= 0):
-                features['category'] = lemonde_article_url[slash1:slash2-1]
+            slash1 = lemonde_article_url.find('/', offset) + 1
+            slash2 = lemonde_article_url.find('/', slash1) + 1
+            if (slash1 >= 0 and slash2 >= 0):
+                features['category'] = lemonde_article_url[slash1:slash2 - 1]
+        else:
+            features['category'] = ""
+            missing = missing + "- category missing\n"
 
         # Writer
-        if len( article_lemonde('span', {'id': 'publisher'}) ) > 0:
-            features['writer'] = article_lemonde('span', {'id': 'publisher'})[0].text.strip()
+        if len(article_lemonde('span', {'id': 'publisher'})) > 0:
+            features['writer'] = article_lemonde(
+                'span', {'id': 'publisher'})[0].text.strip()
+        else:
+            features['writer'] = ""
+            missing = missing + "- writer missing\n"
 
         # Date
-        if len( article_lemonde('time', {'itemprop': 'datePublished'}) ) > 0:
-            features['publish_time'] = article_lemonde('time', {'itemprop': 'datePublished'})[0]['datetime']
+        if len(article_lemonde('time', {'itemprop': 'datePublished'})) > 0:
+            features['publish_time'] = article_lemonde(
+                'time', {'itemprop': 'datePublished'})[0]['datetime']
+        else:
+            features['publish_time'] = ""
+            missing = missing + "- publish_time missing\n"
 
-        if len( article_lemonde('time', {'itemprop': 'dateModified'}) ) > 0:
-            features['update_time'] = article_lemonde('time', {'itemprop': 'dateModified'})[0]['datetime']
+        if len(article_lemonde('time', {'itemprop': 'dateModified'})) > 0:
+            features['update_time'] = article_lemonde(
+                'time', {'itemprop': 'dateModified'})[0]['datetime']
+        else:
+            features['update_time'] = "" # Can be often, not a big problem
 
-        features_articles.append( features )
+        features_articles.append(features)
+
+        if len( missing ) > 0:
+            print ("---------------")
+            print ("HTML page index " + str(index))
+            print ( missing )
+
     return features_articles
 
 
 def saveArticlesAsHtml(html_articles,
-                        url_articles,
+                       url_articles,
                        location="data/html/"):
     """Save the html code on the disk.
     The html file name is the article title.
@@ -121,15 +161,16 @@ def saveArticlesAsHtml(html_articles,
     (same size as html_articles)
     location -- where to save all the files (default: data/html/)
     """
-    if not os.path.exists( location ):
-        os.makedirs( location )
+    if not os.path.exists(location):
+        os.makedirs(location)
 
-    for html, url in zip( html_articles, url_articles ):
+    for html, url in zip(html_articles, url_articles):
         last_slash = url[::-1].find("/")
-        html_file = location + url[len(url)-last_slash:]
-        f = open( html_file, "w")
+        html_file = location + url[len(url) - last_slash:]
+        f = open(html_file, "w")
         f.write(html)
         f.close()
+
 
 def loadArticlesAsHtml(location):
     """Load the html code from the disk.
@@ -138,19 +179,21 @@ def loadArticlesAsHtml(location):
     Keyword arguments:
     location -- where to open all the files
     """
-    if not os.path.exists( location ):
-        raise ValueError("Path (" + location + ") to find html pages doesn't exist.")
+    if not os.path.exists(location):
+        raise ValueError(
+            "Path (" + location + ") to find html pages doesn't exist.")
 
-    if location[len(location)-1] is not "/":
+    if location[len(location) - 1] is not "/":
         location = location + "/"
 
     html_articles = []
-    for f_html in os.listdir( location ):
+    for f_html in os.listdir(location):
         if ".html" in f_html:
-            f = open ( location + f_html, "r" )
-            html_articles.append( f.read() )
+            f = open(location + f_html, "r")
+            html_articles.append(f.read())
             f.close()
     return html_articles
+
 
 def saveFeaturesArticlesAsJson(features_articles,
                                location="data/features/"):
@@ -160,15 +203,17 @@ def saveFeaturesArticlesAsJson(features_articles,
     features_articles -- A list features json like object
     location -- where to save all the files (default: data/features/)
     """
-    if not os.path.exists( location ):
-        os.makedirs( location )
+    if not os.path.exists(location):
+        os.makedirs(location)
 
     for feat in features_articles:
         last_slash = feat['url'][::-1].find("/")
-        json_file = location + feat['url'][len(feat['url'])-last_slash:].replace("html", "json")
-        f = open( json_file, "w")
-        f.write( json.dumps( feat ) )
+        json_file = location + \
+            feat['url'][len(feat['url']) - last_slash:].replace("html", "json")
+        f = open(json_file, "w")
+        f.write(json.dumps(feat))
         f.close()
+
 
 def loadFeaturesArticlesAsJson(location):
     """Load the features json like object from the disk.
@@ -177,25 +222,33 @@ def loadFeaturesArticlesAsJson(location):
     Keyword arguments:
     location -- where to open all the files
     """
-    if not os.path.exists( location ):
-        raise ValueError("Path (" + location + ") to find json features doesn't exist.")
+    if not os.path.exists(location):
+        raise ValueError(
+            "Path (" + location + ") to find json features doesn't exist.")
 
-    if location[len(location)-1] is not "/":
+    if location[len(location) - 1] is not "/":
         location = location + "/"
 
     features_articles = []
-    for f_json in os.listdir( location ):
+    for f_json in os.listdir(location):
         if ".json" in f_json:
-            f = open ( location + f_json, "r" )
-            features_articles.append( json.loads( f.read() ) )
+            f = open(location + f_json, "r")
+            features_articles.append(json.loads(f.read()))
             f.close()
     return features_articles
 
+
 def scrapLeMonde(links_limit=-1,
-                 subscribed_edition=False,
                  save_html=False,
-                 save_features_json=False):
+                 save_features_json=False,
+                 location="data",
+                 subscribed_edition=False):
     """Scrap articles from Le Monde and extract features.
+
+    Returns:
+    list of fetched URLs
+    list of HTML code as string fetched
+    list of extracted features from the HTML
 
     Keyword arguments:
     links_limit -- number of links maximal to return, if -1 return all
