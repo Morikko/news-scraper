@@ -39,6 +39,10 @@ def getHtmlArticleFromArticleLinks(links):
     Keyword arguments:
     links -- A list with all the article links to scrap
     """
+    html_articles = []
+    for link in links:
+        html_articles.append(bs4.BeautifulSoup( urllib.request.urlopen(link).read(), "lxml" ).prettify())
+    return html_articles
 
 
 def extractFeaturesFromHtmlArticles(html_articles):
