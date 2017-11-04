@@ -7,18 +7,30 @@ Can load and save the HTML and features files.
 import urllib
 import bs4
 
-def getArticleLinksFromHomePage(links_limit=-1,
-                                subscribed_edition=False):
+
+def getArticleLinksFromHomePage(links_limit=-1):
     """Scrap the "Le Monde" home page to find all the article links.
     "Le Monde" home page: "http://www.lemonde.fr".
     Return a list of links.
 
+    Don't seek subscribed edition articles.
+
     Keyword arguments:
     links_limit -- number of links maximal to return, if -1 return all
     (default -1)
-    subscribed_edition -- if subscribed article links should be return
-    ( default false)
     """
+    lemonde_url = "http://www.lemonde.fr"
+    lemonde = bs4.BeautifulSoup(urllib.request.urlopen(lemonde_url).read(),
+                                "lxml")
+    links = []
+    for a in lemonde('a'):
+        if ( len(links) == links_limit ):
+            break
+        if len(a('', {'class': 'marqueur_restreint'})) == 0 \
+                and "/article/" in a['href']:
+            links.append(lemonde_url + a['href'])
+
+    return links
 
 
 def getHtmlArticleFromArticleLinks(links):
@@ -57,7 +69,8 @@ def saveArticlesAsHtml(html_articles,
     location -- where to save all the files (default: data/html/)
     """
 
-def loadArticlesAsHtml( location ):
+
+def loadArticlesAsHtml(location):
     """Load the html code from the disk.
     Return a list of html articles in string type.
 
@@ -75,7 +88,8 @@ def saveFeaturesArticlesAsJson(features_articles,
     location -- where to save all the files (default: data/features/)
     """
 
-def loadFeaturesArticlesAsJson( location ):
+
+def loadFeaturesArticlesAsJson(location):
     """Load the features json like object from the disk.
     Return a list of features json like object.
 
