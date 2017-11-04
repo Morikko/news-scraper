@@ -4,8 +4,9 @@ Get the HTML of articles and extract some features (see documentation).
 Can load and save the HTML and features files.
 """
 
-import urllib
+import urllib.request
 import bs4
+import os
 
 
 def getArticleLinksFromHomePage(links_limit=-1):
@@ -108,17 +109,26 @@ def extractFeaturesFromHtmlArticles(html_articles):
 
 
 def saveArticlesAsHtml(html_articles,
+                        url_articles,
                        location="data/html/"):
     """Save the html code on the disk.
     The html file name is the article title.
 
     Keyword arguments:
     html_articles -- A list of html articles in string type
+    url_articles -- List of urls, the ones related to the html page
+    (same size as html_articles)
     location -- where to save all the files (default: data/html/)
     """
-    f = open( "test.html", "w")
-    f.write(html[0])
-    f.close()
+    if not os.path.exists( location ):
+        os.makedirs( location )
+
+    for html, url in zip( html_articles, url_articles ):
+        last_slash = url[::-1].find("/")
+        html_file = location + url[len(url)-last_slash:]
+        f = open( html_file, "w")
+        f.write(html)
+        f.close()
 
 def loadArticlesAsHtml(location):
     """Load the html code from the disk.
