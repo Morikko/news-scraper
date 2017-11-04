@@ -1,4 +1,4 @@
-# news-scraper
+# news-scraper-ranking
 An example API that provides scraps, save and clean news.
 
 Developed over Python 3 only.
@@ -26,6 +26,16 @@ The fetched articles can be stored in 2 formats:
  - Extracted elements in data/ext/<article_name>.json
 
 ## Useful API
+```javascript
+links, htmls, feats = scraper.lemonde_scraper.scrapLeMonde( links_limit=-1, save_html=True, save_features_json=True)
+
+htmls = scraper.lemonde_scraper.loadArticlesAsHtml("data/html")
+
+feats = scraper.lemonde_scraper.loadFeaturesArticlesAsJson( "data/features" )
+```
+
+## Results
+I did a successfully scraping on November the 4th: 116 articles extracted.
 
 ## Dependencies
  - Beautifoul Soup 4.6
