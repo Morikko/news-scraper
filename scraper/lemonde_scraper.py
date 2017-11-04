@@ -62,19 +62,26 @@ def extractFeaturesFromHtmlArticles(html_articles):
      - Related article titles
 
      If a feature is not found, an empty string is set instead.
+     Don't return features where something is missing.
 
     Keyword arguments:
     html_articles -- A list of html articles in string type
     """
     features_articles = []
-    missing = ""
     for index, html in enumerate(html_articles):
+        # Partial article due to the limit for subscribed edition
+        if len(article_lemonde('div', {'class', 'block-teaser'})) > 0:
+            continue
+        missing = ""
         features = {}
         article_lemonde = bs4.BeautifulSoup(html, "lxml")
         # Title
         if len(article_lemonde('h1', {'class': 'tt2'})) > 0:
             features['title'] = article_lemonde(
                 'h1', {'class': 'tt2'})[0].text.strip()
+        elif len(article_lemonde('h1', {'itemprop': 'Headline'})) > 0:
+            features['title'] = article_lemonde(
+                'h1', {'itemprop': 'Headline'})[0].text.strip()
         else:
             features['title'] = ""
             missing = missing + "- title missing\n"
@@ -87,9 +94,9 @@ def extractFeaturesFromHtmlArticles(html_articles):
             features['article_description'] = ""
             missing = missing + "- article_description missing\n"
 
-        if len(article_lemonde('div', {'id': 'articleBody'})) > 0:
+        if len(article_lemonde('div', {'itemprop': 'articleBody'})) > 0:
             features['article_content'] = article_lemonde(
-                'div', {'id': 'articleBody'})[0].text.strip()
+                'div', {'itemprop': 'articleBody'})[0].text.strip()
         else:
             features['article_content'] = ""
             missing = missing + "- article_content missing\n"
@@ -97,6 +104,11 @@ def extractFeaturesFromHtmlArticles(html_articles):
         related_articles = []
         if len(article_lemonde('aside', {'class': 'bloc_base meme_sujet'})) > 0:
             for art in article_lemonde('aside', {'class': 'bloc_base meme_sujet'})[0]('a'):
+                related_articles.append(art.text.strip())
+            features['related_articles'] = related_articles
+        # Alternative method for some pages
+        elif len(article_lemonde('div', {'class': 'related-articles'})) > 0:
+            for art in article_lemonde('div', {'class': 'related-articles'})[0]('a'):
                 related_articles.append(art.text.strip())
             features['related_articles'] = related_articles
         else:
@@ -118,9 +130,9 @@ def extractFeaturesFromHtmlArticles(html_articles):
             missing = missing + "- category missing\n"
 
         # Writer
-        if len(article_lemonde('span', {'id': 'publisher'})) > 0:
+        if len(article_lemonde('span', {'itemprop': 'Publisher'})) > 0:
             features['writer'] = article_lemonde(
-                'span', {'id': 'publisher'})[0].text.strip()
+                'span', {'itemprop': 'Publisher'})[0].text.strip()
         else:
             features['writer'] = ""
             missing = missing + "- writer missing\n"
@@ -139,12 +151,12 @@ def extractFeaturesFromHtmlArticles(html_articles):
         else:
             features['update_time'] = "" # Can be often, not a big problem
 
-        features_articles.append(features)
-
         if len( missing ) > 0:
             print ("---------------")
             print ("HTML page index " + str(index))
             print ( missing )
+        else:
+            features_articles.append(features)
 
     return features_articles
 
@@ -241,8 +253,7 @@ def loadFeaturesArticlesAsJson(location):
 def scrapLeMonde(links_limit=-1,
                  save_html=False,
                  save_features_json=False,
-                 location="data",
-                 subscribed_edition=False):
+                 location="data"):
     """Scrap articles from Le Monde and extract features.
 
     Returns:
@@ -258,3 +269,16 @@ def scrapLeMonde(links_limit=-1,
     save_html -- if save html on disk,
     save_features_json -- if save features on disk
     """
+    links = getArticleLinksFromHomePage(links_limit=links_limit)
+
+    htmls = getHtmlArticleFromArticleLinks(links)
+
+    if ( save_html ):
+        saveArticlesAsHtml(htmls, links, location=location+"/html/")
+
+    features = extractFeaturesFromHtmlArticles( htmls )
+
+    if ( save_features_json ):
+        saveFeaturesArticlesAsJson(features, location=location+"/features/")
+
+    return links, htmls, features
