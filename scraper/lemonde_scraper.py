@@ -7,6 +7,7 @@ Can load and save the HTML and features files.
 import urllib.request
 import bs4
 import os
+import json
 
 
 def getArticleLinksFromHomePage(links_limit=-1):
@@ -159,7 +160,15 @@ def saveFeaturesArticlesAsJson(features_articles,
     features_articles -- A list features json like object
     location -- where to save all the files (default: data/features/)
     """
+    if not os.path.exists( location ):
+        os.makedirs( location )
 
+    for feat in features_articles:
+        last_slash = feat['url'][::-1].find("/")
+        json_file = location + feat['url'][len(feat['url'])-last_slash:].replace("html", "json")
+        f = open( json_file, "w")
+        f.write( json.dumps( feat ) )
+        f.close()
 
 def loadFeaturesArticlesAsJson(location):
     """Load the features json like object from the disk.
