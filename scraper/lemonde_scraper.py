@@ -61,6 +61,50 @@ def extractFeaturesFromHtmlArticles(html_articles):
     Keyword arguments:
     html_articles -- A list of html articles in string type
     """
+    features_articles = []
+    for html in html_articles:
+        features = {}
+        article_lemonde = bs4.BeautifulSoup( html, "lxml" )
+        # Title
+        if len( article_lemonde('h1', {'class': 'tt2'}) ) > 0:
+            features['title'] = article_lemonde('h1', {'class': 'tt2'})[0].text.strip()
+
+        # Simple scrap
+        if len( article_lemonde('', {'class':'description-article'}) ) > 0:
+            features['article_description'] = article_lemonde('', {'class':'description-article'})[0].text
+
+        if len( article_lemonde('div', {'id': 'articleBody'}) ) > 0:
+            features['article_content'] = article_lemonde('div', {'id': 'articleBody'})[0].text.strip()
+
+        related_articles = []
+        if len( article_lemonde('aside', {'class':'bloc_base meme_sujet'}) ) > 0:
+            for art in article_lemonde('aside', {'class':'bloc_base meme_sujet'})[0]('a'):
+                related_articles.append(art.text.strip())
+            features['related_articles'] = related_articles
+
+        # Category
+        if len ( article_lemonde('meta', {'property': 'og:url'}) ) > 0:
+            offset = len("http://www.lemonde.fr")
+            lemonde_article_url = article_lemonde('meta', {'property': 'og:url'})[0]['content']
+            features['url'] = lemonde_article_url
+            slash1 = lemonde_article_url.find('/', offset)+1
+            slash2 = lemonde_article_url.find('/', slash1)+1
+            if ( slash1 >= 0 and slash2 >= 0):
+                features['category'] = lemonde_article_url[slash1:slash2-1]
+
+        # Writer
+        if len( article_lemonde('span', {'id': 'publisher'}) ) > 0:
+            features['writer'] = article_lemonde('span', {'id': 'publisher'})[0].text.strip()
+
+        # Date
+        if len( article_lemonde('time', {'itemprop': 'datePublished'}) ) > 0:
+            features['publish_time'] = article_lemonde('time', {'itemprop': 'datePublished'})[0]['datetime']
+
+        if len( article_lemonde('time', {'itemprop': 'dateModified'}) ) > 0:
+            features['update_time'] = article_lemonde('time', {'itemprop': 'dateModified'})[0]['datetime']
+
+        features_articles.append( features )
+    return features_articles
 
 
 def saveArticlesAsHtml(html_articles,
@@ -72,7 +116,9 @@ def saveArticlesAsHtml(html_articles,
     html_articles -- A list of html articles in string type
     location -- where to save all the files (default: data/html/)
     """
-
+    f = open( "test.html", "w")
+    f.write(html[0])
+    f.close()
 
 def loadArticlesAsHtml(location):
     """Load the html code from the disk.
