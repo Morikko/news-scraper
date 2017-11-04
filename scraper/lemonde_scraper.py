@@ -69,12 +69,14 @@ def extractFeaturesFromHtmlArticles(html_articles):
     """
     features_articles = []
     for index, html in enumerate(html_articles):
-        # Partial article due to the limit for subscribed edition
-        if len(article_lemonde('div', {'class', 'block-teaser'})) > 0:
-            continue
         missing = ""
         features = {}
         article_lemonde = bs4.BeautifulSoup(html, "lxml")
+
+        # Partial article due to the limit for subscribed edition
+        if len(article_lemonde('div', {'class', 'block-teaser'})) > 0:
+            continue
+
         # Title
         if len(article_lemonde('h1', {'class': 'tt2'})) > 0:
             features['title'] = article_lemonde(
