@@ -177,7 +177,19 @@ def loadFeaturesArticlesAsJson(location):
     Keyword arguments:
     location -- where to open all the files
     """
+    if not os.path.exists( location ):
+        raise ValueError("Path (" + location + ") to find json features doesn't exist.")
 
+    if location[len(location)-1] is not "/":
+        location = location + "/"
+
+    features_articles = []
+    for f_json in os.listdir( location ):
+        if ".json" in f_json:
+            f = open ( location + f_json, "r" )
+            features_articles.append( json.loads( f.read() ) )
+            f.close()
+    return features_articles
 
 def scrapLeMonde(links_limit=-1,
                  subscribed_edition=False,
