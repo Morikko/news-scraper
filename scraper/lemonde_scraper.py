@@ -137,7 +137,19 @@ def loadArticlesAsHtml(location):
     Keyword arguments:
     location -- where to open all the files
     """
+    if not os.path.exists( location ):
+        raise ValueError("Path (" + location + ") to find html pages doesn't exist.")
 
+    if location[len(location)-1] is not "/":
+        location = location + "/"
+
+    html_articles = []
+    for f_html in os.listdir( location ):
+        if ".html" in f_html:
+            f = open ( location + f_html, "r" )
+            html_articles.append( f.read() )
+            f.close()
+    return html_articles
 
 def saveFeaturesArticlesAsJson(features_articles,
                                location="data/features/"):
