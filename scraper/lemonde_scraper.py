@@ -8,6 +8,7 @@ import urllib.request
 import bs4
 import os
 import json
+import collections
 
 
 def getArticleLinksFromHomePage(links_limit=-1):
@@ -16,6 +17,7 @@ def getArticleLinksFromHomePage(links_limit=-1):
     Return a list of links.
 
     Don't seek subscribed edition articles.
+    Remove duplicate links.
 
     Keyword arguments:
     links_limit -- number of links maximal to return, if -1 return all
@@ -31,6 +33,9 @@ def getArticleLinksFromHomePage(links_limit=-1):
         if len(a('', {'class': 'marqueur_restreint'})) == 0 \
                 and "/article/" in a['href']:
             links.append(lemonde_url + a['href'])
+
+    # Remove duplicate links
+    links = sorted( collections.Counter( links ) )
 
     return links
 
