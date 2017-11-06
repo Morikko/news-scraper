@@ -74,7 +74,7 @@ import newstool
 kr = newstool.ranking.keywords_ranking.KeywordsRanker()
 
 # Features are in memory
-kr = newstool.ranking.keywords_ranking.KeywordsRanker(features)
+kr = newstool.ranking.keywords_ranking.KeywordsRanker(feats)
 
 kr.search("avion")
 kr.search("europe interdit", results_limit=3, all_keywords=True)
