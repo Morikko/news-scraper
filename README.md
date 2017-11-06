@@ -39,8 +39,7 @@ feats = newstool.scraper.lemonde_scraper.loadFeaturesArticlesAsJson( "data/featu
 I did a successfully scraping on November the 4th: 116 articles extracted.
 
 ## Dependencies
- - Beautifoul Soup 4.6
- - urllib
+ - beautifulsoup4>=4.6.0
 
 # Ranker
 
@@ -82,4 +81,8 @@ kr.search("avion")
 ## Results
 Check `notebooks/search_examples.ipynb`
 
-Goal: Write a method to get the relevant articles from the stored data, when given as input a keyword.
+## Dependencies
+ - scikit-learn>=0.18.1
+ - scipy>=0.19.0
+ - numpy>=1.12.0
+Might work with smaller versions, but I didn't try.
