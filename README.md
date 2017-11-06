@@ -1,7 +1,7 @@
 # news-scraper-ranking
 An example API that provides scraps, save and clean news.
 
-Developed over Python 3 only.
+Developed in Python 3 only.
 
 # Scraper
 
@@ -55,8 +55,7 @@ The features kept are:
 
 All the features and queries are put in lowercase and without accents.
 
-The search ranking system is based on a TfIdf model with sklearn. This basic 
-model is a good starting point for a fast and efficient search engine. 
+The search ranking system is based on a TfIdf model with sklearn. This basic model is a good starting point for a fast and efficient search engine. 
 
 However, the model is not perfect, it only counts on words occurrences. 
 Future improvements could be:
