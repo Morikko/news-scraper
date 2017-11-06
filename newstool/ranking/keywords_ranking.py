@@ -25,6 +25,7 @@ class KeywordsRanker:
         Keyword arguments:
         query -- keywords
         print_results -- if true, print to the console the results
+        return_results -- if true, returns the lists indicated before
         results_limit -- # results max to return (default: 5)
         all_keywords -- if true, results should contain all keywords at least
         once (default: False)
@@ -49,10 +50,19 @@ class KeywordsRanker:
                 print(w + " doesn't appear in any article.")
             """
 
+        words_per_articles = np.zeros((len(self.news_text),1))
+
         for w_index in words_to_query:
             article_index, _, tfidf_query = find(self.news_body_tfidf[:, w_index])
             for index, a_index in enumerate(article_index):
                 cumul_tfidf[a_index] = cumul_tfidf[a_index] + tfidf_query[index]
+                words_per_articles[a_index] = words_per_articles[a_index]+1
+
+        if all_keywords:
+            total_words = len(words_to_query)
+            for i in range(len(words_per_articles)):
+                if words_per_articles[i] != total_words:
+                    cumul_tfidf[i] = 0
 
         # Descending sorting
         results_index_articles = cumul_tfidf.argsort(axis=0)[::-1].flatten()
