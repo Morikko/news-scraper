@@ -1,5 +1,7 @@
 from ..scraper import lemonde_scraper
+
 import numpy as np
+import unicodedata
 from scipy.sparse import find
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
@@ -41,7 +43,6 @@ class KeywordsRanker:
                 self.stop_words[i] = unicodedata.normalize('NFKD', self.stop_words[i]).encode('ASCII', 'ignore')
 
 
-
 def loadLeMondeTextArticles(features=[],
                             location="data/features"):
     """Prepare Le Monde articles to be indexed.
@@ -52,14 +53,14 @@ def loadLeMondeTextArticles(features=[],
     (optional)
     location -- if no features are provided, the folder where to load the json features (default:"data/features")
     """
-    if ( len(features) == 0 ):
-        features = lemonde_scraper.loadFeaturesArticlesAsJson( location)
-
+    if (len(features) == 0):
+        features = lemonde_scraper.loadFeaturesArticlesAsJson(location)
 
     news_text = []
     for feat in features:
-        news_text.append( feat['title'] + '\n' +
-                          feat['article_description'] + '\n' +
-                          feat['article_content']
-                        )
-    return news_text
+        input_text = feat['title'] + '\n' +
+                         feat['article_description'] + '\n' +
+                         feat['article_content']
+        # Remove french accents
+        input_text = unicodedata.normalize('NFKD', input_text).encode('ASCII', 'ignore')
+        news_text.append( input_text )
