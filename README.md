@@ -60,8 +60,9 @@ model is a good starting point for a fast and efficient search engine.
 
 However, the model is not perfect, it only counts on words occurrences. 
 Future improvements could be:
- - Give a note to the article based on how readable the articles are
- - Add social metrics: comments, social share to give hot articles first
+ - Give a note to the articles based on how readable the articles are
+ - Add social metrics: comments, social shares to give hot articles first
+ - Correct misspelling keywords
  - Learn from users behaviors to improve the search engine 
     (need to access user behavior metrics, not possible in this scraping case) 
 
@@ -76,6 +77,7 @@ kr = newstool.ranking.keywords_ranking.KeywordsRanker()
 kr = newstool.ranking.keywords_ranking.KeywordsRanker(features)
 
 kr.search("avion")
+kr.search("europe interdit", results_limit=3, all_keywords=True)
 ```
 
 ## Results
